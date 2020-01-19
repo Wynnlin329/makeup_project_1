@@ -1,0 +1,119 @@
+
+from urllib import request
+from bs4 import BeautifulSoup
+import os
+import pandas
+import xlwt
+
+path="C:/PyETL"
+if not os.path.exists(path):
+    os.mkdir(path)
+
+headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
+Urcosme=pandas.DataFrame(columns=["部位","產品分類","產品線","通路名稱","產品名稱","品牌名稱","容量","價格","推薦標籤","推薦指數","人氣","圖片網址","產品頁","購買頁"])
+
+loc=0
+page=1
+missing1=missing2=missing3=missing4=0
+while page<=22:
+    print("爬取第%d頁中，目前累積%d筆"%(page,loc))
+    url="https://www.urcosme.com/tags/115/products?channel=1&effect=0&is_cosme_store=false&is_discontinued=false&is_limit=false&is_withdraw=false&market_date=0&modus=0&page=%d&price_max=&price_min=&sort=1&texture=0"%(page)
+    req=request.Request(url=url,headers=headers)
+    res=request.urlopen(req)
+    soup=BeautifulSoup(res,"html.parser")
+    product=soup.findAll("div",{"class":"product-name single-dot"})
+
+    for item in product:
+        try:
+            #產品內文
+            productLink=item.a["href"]
+            productUrl="https://www.urcosme.com"+productLink
+            productReq=request.Request(url=productUrl,headers=headers)
+            productRes=request.urlopen(productReq)
+            productSoup=BeautifulSoup(productRes,"html.parser")
+
+            #部位
+            part="眼妝"
+            #產品分類
+            productCategory="眉彩"
+            #產品線
+            productLine="眉筆"
+            #通路名稱
+            pathName="專櫃"
+            #產品名稱
+            productName=productSoup.find("div",{"class":"product-name"}).text
+            #品牌名稱
+            brand=productSoup.find("div",{"class":"detail-text"}).a.text
+
+            label=productSoup.findAll("div",{"class":"other-label"})
+            text=productSoup.findAll("div",{"class":"other-text"})
+            for info in range(0,len(label)):
+                #容量
+                if label[info].text=="容量":
+                    volume=text[info].text
+                    break
+                else:
+                    volume="遺漏"
+                    missing1+=1
+
+            for info in range(0, len(label)):
+                #價格
+                if label[info].text=="價格":
+                    prices=text[info].text
+                    break
+            else:
+                prices="遺漏"
+            #推薦標籤
+            tags=productSoup.findAll("div",{"class":"detail-text"})
+            labels=productSoup.findAll("div",{"class":"detail-label"})
+            for info in range(0,len(labels)):
+                if labels[info].text=="標籤":
+                    tags=tags[info].findAll("a",{"class":"uc-minor-link"})
+                    tagsList=[]
+                    for tag in range(len(tags)):
+                        tagsList.append(tags[tag].text)
+                        recommend="、".join(tagsList)
+                else:
+                    recommend="無"
+            #推薦指數
+            try:
+                score=productSoup.find("div",{"class":"score-number"}).text
+            except AttributeError:
+                score="無推薦分數"
+                missing2+=1
+            #人氣
+            pageview=productSoup.find("span",{"class":"pageview-num%s"%("".join(list(productUrl)[33:]))}).text
+
+            #圖片網址
+            imageUrl=productSoup.find("div",{"class":"product-info-image"}).img["src"]
+            if imageUrl=="https://dg9ugnb21lig7.cloudfront.net/uploads/images/product_default_250x250.png":
+                imageUrl="無商品圖片"
+                missing4+=1
+            #產品頁
+            productUrl=productUrl
+            #購買頁
+            sellUrl=productUrl+"/sell-channels"
+
+            record=[]
+            record.append(part)
+            record.append(productCategory)
+            record.append(productLine)
+            record.append(pathName)
+            record.append(productName)
+            record.append(brand)
+            record.append(volume)
+            record.append(prices)
+            record.append(recommend)
+            record.append(score)
+            record.append(pageview)
+            record.append(imageUrl)
+            record.append(productUrl)
+            record.append(sellUrl)
+            Urcosme.loc[loc]=record
+            loc+=1
+        except TypeError:
+            print("TypeError")
+    page+=1
+
+Urcosme.to_excel(path+"/%s.xls"%(productLine+"："+pathName),encoding="utf-8")
+print("爬蟲結束，共獲得%d筆資料\n其中有%d筆容量遺漏、%d筆無推薦分數、%d筆無商品照片"%(loc,missing1,missing2,missing3))

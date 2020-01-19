@@ -1,0 +1,34 @@
+###### MySQL 基本連線方式 ######
+import MySQLdb
+
+#db = MySQLdb.connect(host = "IP位置" ,user = "登入帳號" , passwd = "密碼" ,db = "database名稱" ,port = port位 ,charset = "使用編碼")
+
+db = MySQLdb.connect(host = "localhost" ,user = "min" , passwd = "1234" ,db = "db104_testdb" ,port = 3306 ,charset = "utf8")
+
+corsor = db.cursor() #建立游標
+db.autocommit(True) # 自動確認
+
+#讀入資料
+
+
+#寫入資料
+
+try:
+    sql_str = "insert into article values(999 ,22334291 ,\'海外網購優惠報PIXstyleMe\' ,\'SunSep0109:082019\' ,\'MiuMiuLin妙妙琳\' ,\'https://styleme.pixnet.net/post/223947138\' ,\'花漾讀A的超美泰奶色唇膏\'); "
+    # sql_str = "insert into article values(147,342491 ,\'{}\' ,\'{}\' ,\'{}\' ,\'{}\' ,\'{}\');" .format("你" ,"我" ,"他" ,"聖誕" ,"快樂")
+    corsor.execute(sql_str)
+except Exception as err:
+    print("unable to insert data to db")
+    print(err)
+
+# show 出來看結果
+try:
+    sql_str = "select * from article"
+    corsor.execute(sql_str)
+    datarows = corsor.fetchall()
+
+    for row in datarows:
+        print(row)
+except:
+    print("unable to fetch data from  db")
+db.close()

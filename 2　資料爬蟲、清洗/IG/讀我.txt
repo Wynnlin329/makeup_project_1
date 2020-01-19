@@ -1,0 +1,32 @@
+-- 事前作業 --
+
+instagram.py 這個檔案，需更改cookie 和 headers
+
+--- 已下不更改 ， 則預設會下載到 C:/ 底下 ---
+-- 如要更改的話 --
+107↓        114行↓ 
+/{0}     和  /{0}/{1}.{2}   不要改
+
+-- Step 1 --
+
+在windows 下的 cmd 裡面執行，
+先 cd 到 這個檔案的所在地
+
+-- Step 2 --
+然後執行  python instagram.py ID   <<=== 這裡的ID是  IG的名稱
+例如 python instagram momolinda0819
+或者 python instagram myeolchi
+
+
+------------------ 下載完之後 ---------------------
+
+因下載下來後，附檔名需更改
+.com  (照片檔)
+.DBA  .DB8 .DB9 .=sc  (影片檔)
+
+而 changeFE.py 是修改資料夾裡的副檔名
+打開 changeFE.py
+然後，更改 照片所在的資料夾 路徑後，執行既可
+
+
+

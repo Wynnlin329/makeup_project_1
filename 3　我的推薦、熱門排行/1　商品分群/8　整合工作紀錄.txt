@@ -1,0 +1,59 @@
+
+一、分類產品之cluster-index
+
+1.固定長度部分(Excel)
+  複製txt檔案，於excel篩掉id以前字符
+　(cluster0,1,2，分三次取代)
+
+--------------------------------------------------------------------------------
+
+2.不定長度部分(Python)
+  以表格欄值讀取，搭配split取切分字串之分段
+
+  import xlrd
+
+  book=xlrd.open_workbook("--檔案位址.xlsx--")
+  #txt檔案複製於原excel檔案之次表
+  sheet=book.sheets()[1]
+
+  i=0
+  indexlist=[]
+  while i<--商品數量--:
+      data=sheet.cell(i.0).value
+
+      #取字符以","切分之最前段，並將id轉為數字
+      index=int(str.split(data,",")[0])
+      indexlist.append(index)
+      i+=1
+
+  print(indexlist)
+
+--------------------------------------------------------------------------------
+
+二、將cluster-index增寫入表欄(R)
+
+> library("readxl")
+> data=read_excel("--檔案位址.xlsx--")
+
+#以0值作為欄位佔位符
+> recommend=0
+> data=cbind(data,recommend)
+
+#indexlist整理為三段(0,1,2)
+> data1$recommend[--c(indexlist)--]=0
+> data1$recommend[--c(indexlist)--]=1
+> data1$recommend[--c(indexlist)--]=2
+
+> write.csv(data1,"--檔案位址.csv--")
+
+--------------------------------------------------------------------------------
+
+三、資料整合(Excel)
+
+1.分表作業
+  查詢txt檔案，將cluster0,1,2:改為標籤分類(日、韓、歐美)
+
+2.合併作業
+  (1)將cluster1,2,3:改為價格分類(低、中、高)
+  (2)以價格搭配標籤分類，增列總分類欄位並寫入
+     (ABC=低、中、高；123=日、韓、歐美)

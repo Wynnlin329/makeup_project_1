@@ -1,0 +1,86 @@
+
+#python斷詞
+
+import jieba
+
+s="xxxxxxxxxx"
+s1=jieba.cut(s)
+print('|'.join(s1))
+
+--------------------------------------------------------------------------------
+
+#python詞頻率表
+
+import jieba
+
+s="xxxxxxxxxx"
+s1=jieba.cut(s)
+
+count={}
+for item in s1:
+    if item in count:
+        count[item]+=1
+    else:
+        count[item]=1
+
+list=[(item, count[item]) for item in count]
+print(list)
+
+--------------------------------------------------------------------------------
+
+#自定義、停用字字典
+
+import jieba
+jieba.load_userdict("xxxxxxxxxx.txt")　#存檔務必以utf-8編碼
+
+s="xxxxxxxxxx"
+s1=jieba.cut(s)
+print('|'.join(s1))
+
+--------------------------------------------------------------------------------
+
+#詞矩陣
+
+import csv
+
+keyword={}
+while True:
+    word = input("請輸入關鍵字:")
+    keyword[word]=0
+    question=input("是否繼續輸入? (y/n):")
+    if question=="y":
+        continue
+    if question=="n":
+        break
+
+with open("xxxxxxxxxx.csv") as C:
+    rows = csv.DictReader(C)
+    for item in rows:
+        list=item["推薦標籤"].split("、")
+        for word in keyword:
+            keyword[word]=0
+            for tag in list:
+                if tag in keyword:
+                    keyword[tag]=1
+                else:
+                    continue
+            if keyword[word]==1:
+                print(item["產品名稱"])
+                print(keyword)
+            else:
+                continue
+
+--------------------------------------------------------------------------------
+
+#餘弦相似度
+
+import numpy as np
+
+def sim(vec1, vec2):
+    vec1 = np.mat(vec1)
+    vec2 = np.mat(vec2)
+    num = float(vec1* vec2.T)
+    line = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+    cos = num / line
+    sim = 0.5 + 0.5 * cos
+    return sim

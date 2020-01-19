@@ -1,0 +1,59 @@
+
+from urllib import request
+from bs4 import BeautifulSoup
+import pandas
+import xlwt
+import xlrd
+
+headers={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36"}
+Urcosme=pandas.DataFrame(columns=["讚數","文章頁"])
+
+book=xlrd.open_workbook('C:/Users/USER/Desktop/Urcosme4.xls')
+sheet=book.sheets()[0]
+
+products=1
+while products<=4850:
+    url=sheet.cell(products,13).value+"/reviews"
+    req=request.Request(url=url, headers=headers)
+    res=request.urlopen(req)
+    soup=BeautifulSoup(res, "html.parser")
+
+    try:
+        product=soup.findAll("div",{"class":"uc-review"})
+        try:
+            likecount=int(product[0].find("div",{"class":"review-like-count-like liked"}).text[0:2])
+            likecountUrl="https://www.urcosme.com/"+product[0].find("a")["href"]
+        except:
+            likecount=0
+            likecountUrl="https://www.urcosme.com/"+product[0].find("a")["href"]
+
+        while True:
+            for item in product:
+                try:
+                    like=int(item.find("div",{"class":"review-like-count-like liked"}).text[0:2])
+                    if like>likecount:
+                        likecount=like
+                        likecountUrl="https://www.urcosme.com/"+item.find("a")["href"]
+                except:
+                    continue
+            try:
+                url="https://www.urcosme.com"+soup.find("a",{"class":"next_page"})["href"]
+                req=request.Request(url=url, headers=headers)
+                res=request.urlopen(req)
+                soup=BeautifulSoup(res, "html.parser")
+                product=soup.findAll("div", {"class":"uc-review"})
+            except:
+                break
+    except:
+        likecount="No"
+        likecountUrl="No"
+
+    content=[]
+    content.append(likecount)
+    content.append(likecountUrl)
+    Urcosme.loc[products]=content
+    if products%10==0:
+        print("已完成%d篇，工作進度%.2f%%"%(products,100*products/4850))
+    products+=1
+
+Urcosme.to_excel("C:/Users/USER/Desktop/article.xls",encoding="utf-8")
